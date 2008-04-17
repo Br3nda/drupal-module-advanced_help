@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.1 2008/04/17 23:42:40 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.2 2008/04/17 23:46:22 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -210,7 +210,7 @@ function advanced_help_index_page($module = '') {
   $breadcrumb = array_merge(drupal_get_breadcrumb(), array_reverse($breadcrumb));
   drupal_set_breadcrumb($breadcrumb);
 
-  $output .= theme('advanced_help_topic', 'advanced_help', 'parent');
+  $output .= theme('advanced_help_topic', 'advanced_help', 'using-advanced-help');
   return $output;
 }
 
