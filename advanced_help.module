@@ -1,0 +1,703 @@
+<?php
+// $Id: advanced_help.module,v 1.1 2008/04/17 23:42:40 merlinofchaos Exp $
+/**
+ * @file advanced_help.module
+ *
+ * Pluggable system to provide advanced help facilities for Drupal and modules.
+ *
+ * Modules utilizing this help system should create a 'help' directory in their
+ * module. Inside that directory place MODULENAME.help.ini which will be formatted
+ * like this:
+ *
+ * @code
+ * [buses]
+ * title = "How buses are tied into the system"
+ * file = buses
+ *
+ * [TOPIC_ID]
+ * title = "Title of topic"
+ * file = filename of topic, without the .html extension
+ * weight = How important the topic is on the index page
+ * parent = the optional topic parent to use in the breadcrumb. Can be either topic or module%topic
+ * @endcode
+ *
+ * All topics are addressed by the module that provides the topic, and the topic
+ * id. Modules can embed links anywhere they want with this:
+ *
+ * @code
+ * $output .= theme('advanced_help_topic', $module, $topic);
+ * @endcode
+ *
+ * You can link to other topics using <a href="topic:module/topic">. Using
+ * this format will ensure that the popup/not-popup stays consistent from
+ * link to link.
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function advanced_help_menu() {
+  // view help topic index
+  $items['admin/advanced_help'] = array(
+    'title' => module_exists('help') ? 'Advanced help' : 'Help',
+    'page callback' => 'advanced_help_index_page',
+    'access arguments' => array('view advanced help index'),
+    'weight' => 9,
+  );
+
+  $items['advanced_help/search/%menu_tail'] = array(
+    'title' => 'Search help',
+    'page callback' => 'advanced_help_search_view',
+    'page arguments' => array('advanced_help'),
+    'access callback' => '_search_menu',
+    'access arguments' => array('advanced_help'),
+  );
+
+  // view help topic
+  $items['help/%/%'] = array(
+    'page callback' => 'advanced_help_topic_page',
+    'page arguments' => array(1, 2),
+    'access arguments' => array('view advanced help topic'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function advanced_help_theme() {
+  $hooks['advanced_help_topic'] = array(
+    'arguments' => array('module' => NULL, 'topic' => NULL),
+  );
+
+  $hooks['advanced_help_popup'] = array(
+    'arguments' => array('content' => NULL),
+    'template' => 'advanced-help-popup',
+  );
+
+  return $hooks;
+}
+
+function advanced_help_uasort($id_a, $id_b) {
+  global $uasort_module;
+
+  $topics = advanced_help_get_topics();
+  $a = $topics[$uasort_module][$id_a];
+  $b = $topics[$uasort_module][$id_b];
+
+  $a_weight = isset($a['weight']) ? $a['weight'] : 0;
+  $b_weight = isset($b['weight']) ? $b['weight'] : 0;
+  if ($a_weight != $b_weight) {
+    return ($a_weight < $b_weight) ? -1 : 1;
+  }
+
+  if ($a['title'] != $b['title']) {
+    return ($a['title'] < $b['title']) ? -1 : 1;
+  }
+  return 0;
+}
+
+/**
+ * Page callback for advanced help search
+ */
+function advanced_help_search_view() {
+  if (!module_exists('search')) {
+    drupal_not_found();
+  }
+
+  $breadcrumb[] = advanced_help_l('Help', 'admin/advanced_help');
+
+  if (!isset($_POST['form_id'])) {
+    $keys = search_get_keys();
+    // Only perform search if there is non-whitespace search term:
+    $results = '';
+    if (trim($keys)) {
+
+      // Collect the search results:
+      $results = search_data($keys, 'advanced_help');
+
+      if ($results) {
+        $results = theme('box', t('Search results'), $results);
+      }
+      else {
+        $results = theme('box', t('Your search yielded no results'), search_help('search#noresults', drupal_help_arg()));
+      }
+    }
+
+    // Construct the search form.
+    $output = drupal_get_form('advanced_help_search_form', $keys);
+    $output .= $results;
+
+  }
+  else {
+    $output = drupal_get_form('advanced_help_search_form', empty($keys) ? '' : $keys);
+  }
+
+  $popup = !empty($_GET['popup']) && user_access('view advanced help popup');
+  if ($popup) {
+    $GLOBALS['devel_shutdown'] = FALSE; // prevent devel module from spewing.
+    drupal_set_breadcrumb(array_reverse($breadcrumb));
+    print theme('advanced_help_popup', $output);
+    return;
+  }
+
+  $breadcrumb = array_merge(drupal_get_breadcrumb(), array_reverse($breadcrumb));
+  drupal_set_breadcrumb(array_reverse($breadcrumb));
+  return $output;
+}
+
+/**
+ * Page callback to view the advanced help topic index.
+ */
+function advanced_help_index_page($module = '') {
+  $topics = advanced_help_get_topics();
+
+  // print a search widget
+  $output = '';
+  if (module_exists('search')) {
+    $output .= drupal_get_form('advanced_help_search_form');
+  }
+  else {
+    $output .= t('Enable the search module to search help.');
+  }
+
+  $breadcrumb = array();
+  if ($module) {
+    if (empty($topics[$module])) {
+      return drupal_not_found();
+    }
+
+    advanced_help_get_topic_hierarchy($topics[$module]);
+    $items = advanced_help_get_tree($topics, $module, $topics[$module]['']['children']);
+
+    $breadcrumb[] = advanced_help_l('Help', 'admin/advanced_help');
+
+    drupal_set_title(t('@module help index', array('@module' => advanced_help_get_module_name($module))));
+    $output .= theme('item_list', $items);
+  }
+  else {
+    // print a module index.
+    $modules = array();
+    $result = db_query("SELECT * FROM {system}");
+    while ($info = db_fetch_object($result)) {
+      $module_info = unserialize($info->info);
+      $modules[$info->name] = $module_info['name'];
+    }
+
+    asort($modules);
+
+    $items = array();
+    foreach ($modules as $module => $module_name) {
+      if (!empty($topics[$module])) {
+        $items[] = advanced_help_l($module_name, "admin/advanced_help/$module");
+      }
+    }
+
+    drupal_set_title(t('Module help index'));
+    $output .= theme('item_list', $items);
+  }
+
+  $popup = !empty($_GET['popup']) && user_access('view advanced help popup');
+  if ($popup) {
+    $GLOBALS['devel_shutdown'] = FALSE; // prevent devel module from spewing.
+    drupal_set_breadcrumb(array_reverse($breadcrumb));
+    print theme('advanced_help_popup', $output);
+    return;
+  }
+
+  $breadcrumb = array_merge(drupal_get_breadcrumb(), array_reverse($breadcrumb));
+  drupal_set_breadcrumb($breadcrumb);
+
+  $output .= theme('advanced_help_topic', 'advanced_help', 'parent');
+  return $output;
+}
+
+function advanced_help_get_tree($topics, $module, $topic_ids) {
+  global $uasort_module;
+  $uasort_module = $module;
+  uasort($topic_ids, 'advanced_help_uasort');
+  $items = array();
+  foreach ($topic_ids as $topic) {
+    $item = advanced_help_l($topics[$module][$topic]['title'], "help/$module/$topic");
+    if (!empty($topics[$module][$topic]['children'])) {
+      $item .= theme('item_list', advanced_help_get_tree($topics, $module, $topics[$module][$topic]['children']));
+    }
+
+    $items[] = $item;
+  }
+
+  return $items;
+}
+/**
+ * Build a hierarchy for a single module's worth of topics.
+ */
+function advanced_help_get_topic_hierarchy(&$topics) {
+  foreach ($topics as $topic => $info) {
+    // We have a blank topic that we don't want parented to
+    // itself.
+    if (!$topic) {
+      continue;
+    }
+
+    if (empty($info['parent'])) {
+      $parent = '';
+    }
+    else if (strpos($info['parent'], '%')) {
+      // items that parent to another module are top level here.
+      $parent = '';
+    }
+    else {
+      $parent = $info['parent'];
+      if (empty($topics[$parent])) {
+        // if it doesn't exist, top level.
+        $parent = '';
+      }
+    }
+
+    if (!isset($topics[$parent]['children'])) {
+      $topics[$parent]['children'] = array();
+    }
+    $topics[$parent]['children'][] = $topic;
+  }
+}
+
+/**
+ * Form builder callback to build the search form.
+ */
+function advanced_help_search_form(&$form_state, $keys = '') {
+  $form = search_form($form_state, advanced_help_url('admin/advanced_help'), $keys, 'advanced_help', t('Search help'));
+  require_once './' . drupal_get_path('module', 'search') . '/search.pages.inc';
+
+  $form['basic']['inline']['submit']['#validate'] = array('search_form_validate');
+  $form['basic']['inline']['submit']['#submit'] = array('advanced_help_search_form_submit');
+
+  return $form;
+}
+
+/**
+ * Process a search form submission.
+ */
+function advanced_help_search_form_submit($form, &$form_state) {
+  $keys = $form_state['values']['processed_keys'];
+  if ($keys == '') {
+    form_set_error('keys', t('Please enter some keywords.'));
+    return;
+  }
+
+  $popup = !empty($_GET['popup']) && user_access('view advanced help popup');
+
+  if ($popup) {
+    $form_state['redirect'] = array('advanced_help/search/' . $keys, 'popup=true');
+  }
+  else {
+    $form_state['redirect'] = 'advanced_help/search/' . $keys;
+  }
+}
+
+
+/**
+ * Small helper function to get a module's proper name.
+ */
+function advanced_help_get_module_name($module) {
+  $info = db_fetch_object(db_query("SELECT * FROM {system} WHERE name = '%s'", $module));
+  $info = unserialize($info->info);
+  return t($info['name']);
+}
+
+/**
+ * Page callback to view a help topic.
+ */
+function advanced_help_topic_page($module, $topic) {
+  $info = advanced_help_get_topic($module, $topic);
+  if (!$info) {
+    return drupal_not_found();
+  }
+
+  $popup = !empty($_GET['popup']) && user_access('view advanced help popup');
+
+  drupal_set_title($info['title']);
+
+  // set up breadcrumb
+  $breadcrumb = array();
+
+  $parent = $info;
+  $pmodule = $module;
+
+  // Loop checker
+  $checked = array();
+  while (!empty($parent['parent'])) {
+    if (strpos($parent['parent'], '%')) {
+      list($pmodule, $ptopic) = explode('%', $parent['parent']);
+    }
+    else {
+      $ptopic = $parent['parent'];
+    }
+
+    if (!empty($checked[$pmodule][$ptopic])) {
+      break;
+    }
+    $checked[$pmodule][$ptopic] = TRUE;
+
+    $parent = advanced_help_get_topic($pmodule, $ptopic);
+    if (!$parent) {
+      break;
+    }
+
+    $breadcrumb[] = advanced_help_l($parent['title'], "help/$pmodule/$ptopic");
+  }
+
+  $breadcrumb[] = advanced_help_l(advanced_help_get_module_name($pmodule), "admin/advanced_help/$pmodule");
+  $breadcrumb[] = advanced_help_l(t('Help'), "admin/advanced_help");
+
+  $output = advanced_help_view_topic($module, $topic, $popup);
+  if (empty($output)) {
+    $output = t('Missing help topic.');
+  }
+
+  if ($popup) {
+    $GLOBALS['devel_shutdown'] = FALSE; // prevent devel module from spewing.
+    drupal_set_breadcrumb(array_reverse($breadcrumb));
+    print theme('advanced_help_popup', $output);
+    return;
+  }
+
+  $breadcrumb[] = l('Home', '');
+  drupal_set_breadcrumb(array_reverse($breadcrumb));
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function advanced_help_perm() {
+  return array('view advanced help topic', 'view advanced help popup', 'view advanced help index');
+}
+
+/**
+ * Display a help icon with a link to view the topic in a popup
+ */
+function theme_advanced_help_topic($module, $topic) {
+  $image = '<span>' . t('Help') . '</span>';
+  $info = advanced_help_get_topic($module, $topic);
+
+  if (!$info) {
+    return;
+  }
+
+  if (user_access('view advanced help popup')) {
+    return l($image, "help/$module/$topic", array(
+      'attributes' => array(
+        'class' => 'advanced-help-link',
+        'onclick' => "window.open(this.href, 'advanced_help_window', 'width=500,height=500,scrollbars,resizable'); return false;",
+        'title' => $info['title']
+      ),
+      'query' => array('popup' => TRUE),
+      'html' => TRUE)
+    );
+  }
+  else {
+    return l($image, "help/$module/$topic", array(
+      'attributes' => array(
+        'class' => 'advanced-help-link',
+        'title' => $info['title']
+      ),
+      'html' => TRUE)
+    );
+  }
+}
+
+/**
+ * Load and render a help topic
+ */
+function advanced_help_get_topic_filename($module, $topic) {
+  init_theme();
+  global $language;
+
+  $info = advanced_help_get_topic($module, $topic);
+  if (empty($info)) {
+    return;
+  }
+
+  // search paths:
+  $paths = array(
+    path_to_theme() . '/help', // allow theme override
+    drupal_get_path('module', $module) . "/po/help/$language->language", // translations
+    $info['path'], // in same directory as .inc file
+  );
+
+  foreach ($paths as $path) {
+    if (file_exists("./$path/$info[file]")) {
+      return "./$path/$info[file]";
+    }
+  }
+}
+
+/**
+ * Load and render a help topic
+ */
+function advanced_help_view_topic($module, $topic, $popup = FALSE) {
+  $file = advanced_help_get_topic_filename($module, $topic);
+  $info = advanced_help_get_topic($module, $topic);
+  if ($file) {
+    // @todo is this trusted output?
+    $output = file_get_contents($file);
+    // Make some exchanges
+    if ($popup) {
+      $output = preg_replace('/href="topic:([^"]+)"/', 'href="/help/$1?popup=true"', $output);
+    }
+    else {
+      $output = preg_replace('/href="topic:([^"]+)"/', 'href="/help/$1"', $output);
+    }
+
+    $output = preg_replace('/href="path:([^"]+)"/', 'href="/' . $info['path'] . '/$1', $output);
+
+    return $output;
+  }
+}
+
+/**
+ * Get the information for a single help topic.
+ */
+function advanced_help_get_topic($module, $topic) {
+  $topics = advanced_help_get_topics();
+  if (!empty($topics[$module][$topic])) {
+    return $topics[$module][$topic];
+  }
+}
+
+/**
+ * Search the system for all available help topics
+ */
+function advanced_help_get_topics() {
+  static $topics = NULL;
+  if (!isset($topics)) {
+    $topics = array();
+    $help_path = drupal_get_path('module', 'advanced_help') . '/modules';
+    foreach (module_list() as $module) {
+      $module_path = drupal_get_path('module', $module);
+      $info = array();
+      if (file_exists("$module_path/help/$module.help.ini")) {
+        $path = "$module_path/help";
+        $info = parse_ini_file("./$module_path/help/$module.help.ini", TRUE);
+      }
+      else if (file_exists("$help_path/$module/$module.help.ini")) {
+        $path = "$help_path/$module";
+        $info = parse_ini_file("./$help_path/$module/$module.help.ini", TRUE);
+      }
+      if (!empty($info)) {
+        foreach ($info as $name => $topic) {
+          // each topic should have a name, a title, a file and of course the path.
+          $topics[$module][$name] = array(
+            'name' => $name,
+            'title' => $topic['title'],
+            'weight' => isset($topic['weight']) ? $topic['weight'] : 0,
+            'parent' => isset($topic['parent']) ? $topic['parent'] : 0,
+            'file' => $topic['file'] . '.html', // require extension
+            'path' => $path, // not in .ini file
+          );
+        }
+      }
+    }
+  }
+  return $topics;
+}
+
+/**
+ * Implementation of hook_search()
+ */
+function advanced_help_search($op = 'search', $keys = null) {
+  switch ($op) {
+    case 'name':
+      return t('Help');
+    case 'reset':
+      variable_del('advanced_help_last_cron');
+      return;
+    case 'search':
+      $topics = advanced_help_get_topics();
+      $find = do_search($keys, 'help');
+      if (!$find) {
+        return;
+      }
+
+      $results = array();
+
+      $placeholders = implode(', ', array_fill(0, count($find), '%d'));
+      foreach ($find as $item) {
+        $sids[] = $item->sid;
+      }
+
+      $result = db_query("SELECT * FROM {advanced_help_index} WHERE sid IN ($placeholders)", $sids);
+      while ($sid = db_fetch_object($result)) {
+        // guard against removed help topics that are still indexed.
+        if (empty($topics[$sid->module][$sid->topic])) {
+          continue;
+        }
+        $info = $topics[$sid->module][$sid->topic];
+        $text = advanced_help_view_topic($sid->module, $sid->topic);
+        $results[] = array('link' => advanced_help_url("help/$sid->module/$sid->topic"),
+                           'title' => $info['title'],
+                           'snippet' => search_excerpt($keys, $text));
+      }
+      return $results;
+  }
+}
+
+/**
+ * Get or create an sid (search id) to correllate to each topic for
+ * the search system.
+ */
+function advanced_help_get_sids(&$topics) {
+  $result = db_query("SELECT * FROM {advanced_help_index}");
+  while ($sid = db_fetch_object($result)) {
+    if (empty($topics[$sid->module][$sid->topic])) {
+      db_query("DELETE FROM {advanced_help_index} WHERE sid = %d", $sid->sid);
+    }
+    else {
+      $topics[$sid->module][$sid->topic]['sid'] = $sid->sid;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_update_index().
+ */
+function advanced_help_update_index() {
+  // If we got interrupted by limit, this will contain the last module
+  // and topic we looked at.
+  $last = variable_get('advanced_help_last_cron', array('time' => 0));
+  $limit = intval(variable_get('search_cron_limit', 100));
+  $topics = advanced_help_get_topics();
+  advanced_help_get_sids($topics);
+
+  $count = 0;
+
+  foreach ($topics as $module => $module_topics) {
+    // fast forward if necessary
+    if (!empty($last['module']) && $last['module'] != $module) {
+      continue;
+    }
+
+    foreach ($module_topics as $topic => $info) {
+      // fast forward if necessary
+      if (!empty($last['topic']) && $last['topic'] != $topic) {
+        continue;
+      }
+
+      // if we've been looking to catch up, and we have, reset so we
+      // stop fast forwarding.
+      if (!empty($last['module'])) {
+        unset($last['topic']);
+        unset($last['module']);
+      }
+
+      $file = advanced_help_get_topic_filename($module, $topic);
+      if ($file && (empty($info['sid']) || filemtime($file) > $last['time'])) {
+        if (empty($info['sid'])) {
+          db_query("INSERT INTO {advanced_help_index} (module, topic) VALUES ('%s', '%s')", $module, $topic);
+          $info['sid'] = db_last_insert_id('advanced_help_index', 'sid');
+        }
+
+        search_index($info['sid'], 'help', file_get_contents($file));
+        $count++;
+        if ($count >= $limit) {
+          $last['topic'] = $topic;
+          $last['module'] = $module;
+          // don't change time if we stop
+          variable_set('advanced_help_last_cron', $last);
+          return;
+        }
+      }
+    }
+  }
+  variable_set('advanced_help_last_cron', array('time' => time()));
+}
+
+/**
+ * Fill in a bunch of page variables for our specialized popup page
+ */
+function template_preprocess_advanced_help_popup(&$variables) {
+  // Add favicon
+  if (theme_get_setting('toggle_favicon')) {
+    drupal_set_html_head('<link rel="shortcut icon" href="'. check_url(theme_get_setting('favicon')) .'" type="image/x-icon" />');
+  }
+
+  global $theme;
+  // Construct page title
+  if (drupal_get_title()) {
+    $head_title = array(strip_tags(drupal_get_title()), variable_get('site_name', 'Drupal'));
+  }
+  else {
+    $head_title = array(variable_get('site_name', 'Drupal'));
+    if (variable_get('site_slogan', '')) {
+      $head_title[] = variable_get('site_slogan', '');
+    }
+  }
+
+  drupal_add_css(drupal_get_path('module', 'advanced_help') . '/help.css');
+
+  $variables['head_title']        = implode(' | ', $head_title);
+  $variables['base_path']         = base_path();
+  $variables['front_page']        = url();
+  $variables['breadcrumb']        = theme('breadcrumb', drupal_get_breadcrumb());
+  $variables['feed_icons']        = drupal_get_feeds();
+  $variables['head']              = drupal_get_html_head();
+  $variables['language']          = $GLOBALS['language'];
+  $variables['language']->dir     = $GLOBALS['language']->direction ? 'rtl' : 'ltr';
+  $variables['logo']              = theme_get_setting('logo');
+  $variables['messages']          = theme('status_messages');
+  $variables['site_name']         = (theme_get_setting('toggle_name') ? variable_get('site_name', 'Drupal') : '');
+  $variables['css']               = drupal_add_css();
+  $css = drupal_add_css();
+
+  // Remove theme css.
+  foreach ($css as $media => $types) {
+    if (isset($css[$media]['theme'])) {
+      $css[$media]['theme'] = array();
+    }
+  }
+
+  $variables['styles']            = drupal_get_css($css);
+  $variables['scripts']           = drupal_get_js();
+  $variables['title']             = drupal_get_title();
+  // Closure should be filled last.
+  $variables['closure']           = theme('closure');
+}
+
+/**
+ * Format a link but preserve popup identity.
+ */
+function advanced_help_l($text, $dest, $options = array()) {
+  $popup = !empty($_GET['popup']) && user_access('view advanced help popup');
+  if ($popup) {
+    if (empty($options['query'])) {
+      $options['query'] = array();
+    }
+
+    if (is_array($options['query'])) {
+      $options['query'] += array('popup' => TRUE);
+    }
+    else {
+      $options['query'] += '&popup=TRUE';
+    }
+  }
+
+  return l($text, $dest, $options);
+}
+
+/**
+ * Format a url but preserve popup identity.
+ */
+function advanced_help_url($dest, $options = array()) {
+  $popup = !empty($_GET['popup']) && user_access('view advanced help popup');
+  if ($popup) {
+    if (empty($options['query'])) {
+      $options['query'] = array();
+    }
+
+    $options['query'] += array('popup' => TRUE);
+  }
+
+  return url($dest, $options);
+}
