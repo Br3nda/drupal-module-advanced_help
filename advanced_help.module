@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.4 2008/04/18 00:02:09 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.5 2008/04/18 00:56:54 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -210,7 +210,7 @@ function advanced_help_index_page($module = '') {
   $breadcrumb = array_merge(drupal_get_breadcrumb(), array_reverse($breadcrumb));
   drupal_set_breadcrumb($breadcrumb);
 
-  $output .= theme('advanced_help_topic', 'advanced_help', 'using-advanced-help');
+  $output .= t('This is a demo link to the popup: ') . theme('advanced_help_topic', 'advanced_help', 'using-advanced-help');
   return $output;
 }
 
@@ -554,7 +554,8 @@ function advanced_help_search($op = 'search', $keys = null) {
  * the search system.
  */
 function advanced_help_get_sids(&$topics) {
-  $result = db_query("SELECT * FROM {advanced_help_index}");
+  global $language;
+  $result = db_query("SELECT * FROM {advanced_help_index} WHERE language = '%s'", $language->language);
   while ($sid = db_fetch_object($result)) {
     if (empty($topics[$sid->module][$sid->topic])) {
       db_query("DELETE FROM {advanced_help_index} WHERE sid = %d", $sid->sid);
@@ -569,6 +570,8 @@ function advanced_help_get_sids(&$topics) {
  * Implementation of hook_update_index().
  */
 function advanced_help_update_index() {
+  global $language;
+
   // If we got interrupted by limit, this will contain the last module
   // and topic we looked at.
   $last = variable_get('advanced_help_last_cron', array('time' => 0));
@@ -600,11 +603,11 @@ function advanced_help_update_index() {
       $file = advanced_help_get_topic_filename($module, $topic);
       if ($file && (empty($info['sid']) || filemtime($file) > $last['time'])) {
         if (empty($info['sid'])) {
-          db_query("INSERT INTO {advanced_help_index} (module, topic) VALUES ('%s', '%s')", $module, $topic);
+          db_query("INSERT INTO {advanced_help_index} (module, topic, language) VALUES ('%s', '%s', '%s')", $module, $topic, $language->language);
           $info['sid'] = db_last_insert_id('advanced_help_index', 'sid');
         }
 
-        search_index($info['sid'], 'help', file_get_contents($file));
+        search_index($info['sid'], 'help', '<h1>' . $info['title'] . '</h1>' . file_get_contents($file));
         $count++;
         if ($count >= $limit) {
           $last['topic'] = $topic;

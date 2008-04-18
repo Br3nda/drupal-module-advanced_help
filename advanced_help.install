@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.install,v 1.1 2008/04/17 23:42:40 merlinofchaos Exp $
+// $Id: advanced_help.install,v 1.2 2008/04/18 00:56:54 merlinofchaos Exp $
 /**
  * @file advanced_help.install
  * Contains install and update functions for advanced_help.
@@ -43,8 +43,16 @@ function advanced_help_schema() {
         'not null' => TRUE,
         'description' => t('The topic id.'),
       ),
+      'language' => array(
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('The language this search index relates to.'),
+      ),
     ),
     'primary key' => array('sid'),
+    'indexes' => array('language' => array('language')),
   );
 
   return $schema;
