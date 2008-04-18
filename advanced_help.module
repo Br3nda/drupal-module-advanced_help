@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.5 2008/04/18 00:56:54 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.6 2008/04/18 23:54:10 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -49,8 +49,7 @@ function advanced_help_menu() {
     'title' => 'Search help',
     'page callback' => 'advanced_help_search_view',
     'page arguments' => array('advanced_help'),
-    'access callback' => '_search_menu',
-    'access arguments' => array('advanced_help'),
+    'access arguments' => array('view advanced help index'),
   );
 
   // view help topic
@@ -387,6 +386,7 @@ function theme_advanced_help_topic($module, $topic) {
   }
 
   if (user_access('view advanced help popup')) {
+    drupal_add_css(drupal_get_path('module', 'advanced_help') . '/help-icon.css');
     return l($image, "help/$module/$topic", array(
       'attributes' => array(
         'class' => 'advanced-help-link',

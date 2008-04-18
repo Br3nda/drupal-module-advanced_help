@@ -1,0 +1,16 @@
+.advanced-help-link {
+  width: 16px;
+  height: 16px;
+  background: transparent url('help.png') no-repeat top left;
+  background-position: 0px 0px;
+  display: block;
+}
+
+.advanced-help-link span {
+  display: none;
+}
+
+
+.advanced-help-link:hover {
+  background-position: 0px -16px;
+}
