@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.7 2008/04/19 00:44:28 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.8 2008/04/19 00:51:27 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -209,7 +209,6 @@ function advanced_help_index_page($module = '') {
   $breadcrumb = array_merge(drupal_get_breadcrumb(), array_reverse($breadcrumb));
   drupal_set_breadcrumb($breadcrumb);
 
-  $output .= t('This is a demo link to the popup: ') . theme('advanced_help_topic', 'advanced_help', 'using-advanced-help');
   return $output;
 }
 
@@ -362,6 +361,7 @@ function advanced_help_topic_page($module, $topic) {
     return;
   }
 
+  drupal_add_css(drupal_get_path('module', 'advanced_help') . '/help.css');
   $breadcrumb[] = l('Home', '');
   drupal_set_breadcrumb(array_reverse($breadcrumb));
   return $output;
@@ -456,7 +456,7 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
     $output = preg_replace('/href="path:([^"]+)"/', 'href="/' . $info['path'] . '/$1"', $output);
     $output = preg_replace('/src="path:([^"]+)"/', 'src="/' . $info['path'] . '/$1"', $output);
 
-    return $output;
+    return '<div class="advanced-help-topic">' . $output . '</div>';
   }
 }
 
@@ -646,7 +646,7 @@ function template_preprocess_advanced_help_popup(&$variables) {
     }
   }
 
-  drupal_add_css(drupal_get_path('module', 'advanced_help') . '/help.css');
+  drupal_add_css(drupal_get_path('module', 'advanced_help') . '/help-popup.css');
 
   $variables['head_title']        = implode(' | ', $head_title);
   $variables['base_path']         = base_path();
