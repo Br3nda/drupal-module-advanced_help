@@ -124,3 +124,15 @@ code, pre {
   display: block;
 }
 
+.help-left {
+  float: left;
+}
+
+.help-right {
+  float: right;
+}
+
+.help-box {
+  margin: .2em;
+}
+
