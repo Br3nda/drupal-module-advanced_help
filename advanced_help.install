@@ -1,12 +1,12 @@
 <?php
-// $Id: advanced_help.install,v 1.2 2008/04/18 00:56:54 merlinofchaos Exp $
+// $Id: advanced_help.install,v 1.3 2008/04/19 16:45:57 merlinofchaos Exp $
 /**
  * @file advanced_help.install
  * Contains install and update functions for advanced_help.
  */
 
 function advanced_help_install() {
-  drupal_set_message('Installing advanced_help');
+  drupal_set_message('Installing advanced_help.');
   drupal_install_schema('advanced_help');
 }
 
