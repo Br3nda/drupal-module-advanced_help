@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.10 2008/04/19 16:51:44 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.11 2008/04/19 17:10:34 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -444,6 +444,8 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
     // @todo is this trusted output?
     $output = file_get_contents($file);
     // Make some exchanges.
+
+    // Change 'topic:' to the URL for another help topic.
     if ($popup) {
       $output = preg_replace('/href="topic:([^"]+)"/', 'href="' . url('help/$1', array('query' => 'popup=true')) . '"', $output);
       $output = preg_replace('/src="topic:([^"]+)"/', 'src="' . url('help/$1', array('query' => 'popup=true')) . '"', $output);
@@ -455,8 +457,13 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
 
     global $base_path;
 
+    // Change 'path:' to the URL to the base help directory.
     $output = preg_replace('/href="path:([^"]+)"/', 'href="' . $base_path . $info['path'] . '/$1"', $output);
     $output = preg_replace('/src="path:([^"]+)"/', 'src="' . $base_path . $info['path'] . '/$1"', $output);
+
+    // Change 'base_url:' to the URL to the site.
+    $output = preg_replace('/href="base_url:([^"]+)"/', 'href="' . url('$1') . '"', $output);
+    $output = preg_replace('/src="base_url:([^"]+)"/', 'src="' . url('$1') . '"', $output);
 
     return '<div class="advanced-help-topic">' . $output . '</div>';
   }
