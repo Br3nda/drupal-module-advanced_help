@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.12 2008/04/21 04:55:20 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.13 2008/04/21 19:28:33 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -423,7 +423,7 @@ function advanced_help_get_topic_filename($module, $topic) {
   // Search paths:
   $paths = array(
     path_to_theme() . '/help', // Allow theme override.
-    drupal_get_path('module', $module) . "/po/help/$language->language", // Translations.
+    drupal_get_path('module', $module) . "/translations/help/$language->language", // Translations.
     $info['path'], // In same directory as .inc file.
   );
 
@@ -443,16 +443,17 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
   if ($file) {
     // @todo is this trusted output?
     $output = file_get_contents($file);
-    // Make some exchanges.
+    // Make some exchanges. The strtr is because url() translates $ into %24
+    // but we need to change it back for the regex replacement.
 
     // Change 'topic:' to the URL for another help topic.
     if ($popup) {
-      $output = preg_replace('/href="topic:([^"]+)"/', 'href="' . url('help/$1', array('query' => 'popup=true')) . '"', $output);
-      $output = preg_replace('/src="topic:([^"]+)"/', 'src="' . url('help/$1', array('query' => 'popup=true')) . '"', $output);
+      $output = preg_replace('/href="topic:([^"]+)"/', 'href="' . strtr(url('help/$1', array('query' => 'popup=true')), array('%24' => '$')) . '"', $output);
+      $output = preg_replace('/src="topic:([^"]+)"/', 'src="' . strtr(url('help/$1', array('query' => 'popup=true')), array('%24' => '$')) . '"', $output);
     }
     else {
-      $output = preg_replace('/href="topic:([^"]+)"/', 'href="' . url('help/$1') . '"', $output);
-      $output = preg_replace('/src="topic:([^"]+)"/', 'src="' . url('help/$1') . '"', $output);
+      $output = preg_replace('/href="topic:([^"]+)"/', 'href="' . strtr(url('help/$1'), array('%24' => '$')) . '"', $output);
+      $output = preg_replace('/src="topic:([^"]+)"/', 'src="' . strtr(url('help/$1'), array('%24' => '$')) . '"', $output);
     }
 
     global $base_path;
@@ -462,8 +463,8 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
     $output = preg_replace('/src="path:([^"]+)"/', 'src="' . $base_path . $info['path'] . '/$1"', $output);
 
     // Change 'base_url:' to the URL to the site.
-    $output = preg_replace('/href="base_url:([^"]+)"/', 'href="' . url('$1') . '"', $output);
-    $output = preg_replace('/src="base_url:([^"]+)"/', 'src="' . url('$1') . '"', $output);
+    $output = preg_replace('/href="base_url:([^"]+)"/', 'href="' . strtr(url('$1'), array('%24' => '$')) . '"', $output);
+    $output = preg_replace('/src="base_url:([^"]+)"/', 'src="' . strtr(url('$1'), array('%24' => '$')) . '"', $output);
 
     return '<div class="advanced-help-topic">' . $output . '</div>';
   }
@@ -501,8 +502,8 @@ function advanced_help_get_topics() {
       if (!empty($info)) {
         // Get translated titles:
         global $language;
-        if (file_exists("$module_path/po/help/$language->language/module.help.ini")) {
-          $translation = parse_ini_file("$module_path/po/help/$language->language/module.help.ini", TRUE);
+        if (file_exists("$module_path/translations/help/$language->language/module.help.ini")) {
+          $translation = parse_ini_file("$module_path/translations/help/$language->language/module.help.ini", TRUE);
         }
         foreach ($info as $name => $topic) {
           // Each topic should have a name, a title, a file and of course the path.
