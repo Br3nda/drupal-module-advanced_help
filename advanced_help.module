@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.13 2008/04/21 19:28:33 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.14 2008/04/27 18:50:25 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -502,15 +502,15 @@ function advanced_help_get_topics() {
       if (!empty($info)) {
         // Get translated titles:
         global $language;
-        if (file_exists("$module_path/translations/help/$language->language/module.help.ini")) {
-          $translation = parse_ini_file("$module_path/translations/help/$language->language/module.help.ini", TRUE);
+        if (file_exists("$module_path/translations/help/$language->language/$module.help.ini")) {
+          $translation = parse_ini_file("$module_path/translations/help/$language->language/$module.help.ini", TRUE);
         }
         foreach ($info as $name => $topic) {
           // Each topic should have a name, a title, a file and of course the path.
           $file = !empty($topic['file']) ? $topic['file'] : $name;
           $topics[$module][$name] = array(
             'name' => $name,
-            'title' => !empty($translation['name']['title']) ? $translation['name']['title'] : $topic['title'],
+            'title' => !empty($translation[$name]['title']) ? $translation[$name]['title'] : $topic['title'],
             'weight' => isset($topic['weight']) ? $topic['weight'] : 0,
             'parent' => isset($topic['parent']) ? $topic['parent'] : 0,
             'file' => $file . '.html', // require extension
