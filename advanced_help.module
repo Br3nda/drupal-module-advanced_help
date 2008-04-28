@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.14 2008/04/27 18:50:25 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.15 2008/04/28 18:48:07 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -446,6 +446,14 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
     // Make some exchanges. The strtr is because url() translates $ into %24
     // but we need to change it back for the regex replacement.
 
+    // Run the line break filter if requested
+    if (!empty($info['line break'])) {
+      // Remove the header since it adds an extra <br /> to the filter.
+      $output = preg_replace('/^<!--[^\n]*-->\n/', '', $output);
+
+      $output = _filter_autop($output);
+    }
+
     // Change 'topic:' to the URL for another help topic.
     if ($popup) {
       $output = preg_replace('/href="topic:([^"]+)"/', 'href="' . strtr(url('help/$1', array('query' => 'popup=true')), array('%24' => '$')) . '"', $output);
@@ -505,6 +513,12 @@ function advanced_help_get_topics() {
         if (file_exists("$module_path/translations/help/$language->language/$module.help.ini")) {
           $translation = parse_ini_file("$module_path/translations/help/$language->language/$module.help.ini", TRUE);
         }
+        $settings = array();
+        if (!empty($info['advanced help settings'])) {
+          $settings = $info['advanced help settings'];
+          unset($info['advanced help settings']);
+        }
+
         foreach ($info as $name => $topic) {
           // Each topic should have a name, a title, a file and of course the path.
           $file = !empty($topic['file']) ? $topic['file'] : $name;
@@ -515,6 +529,7 @@ function advanced_help_get_topics() {
             'parent' => isset($topic['parent']) ? $topic['parent'] : 0,
             'file' => $file . '.html', // require extension
             'path' => $path, // not in .ini file
+            'line break' => isset($topic['line break']) ? $topic['line break'] : (isset($settings['line break']) ? $settings['line break'] : FALSE),
           );
         }
       }
