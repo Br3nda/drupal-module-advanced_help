@@ -1,12 +1,14 @@
-<!-- $Id: ini-file.html,v 1.1 2008/04/28 18:48:07 merlinofchaos Exp $ -->
+<!-- $Id: ini-file.html,v 1.2 2008/04/28 20:33:16 merlinofchaos Exp $ -->
 The advanced help configuration file is in simple .ini file format, divided into sections for each help file, plus an optional section for global settings that might be inherited for each help file.
 
-The first line of an advanced help ini file should be ;$Id: ini-file.html,v 1.1 2008/04/28 18:48:07 merlinofchaos Exp $ which will be a comment providing the CVS identifier for the file. The ; indicates a comment character. Anything after the ; will be ignored.
+The first line of an advanced help ini file should be ;$Id: ini-file.html,v 1.2 2008/04/28 20:33:16 merlinofchaos Exp $ which will be a comment providing the CVS identifier for the file. The ; indicates a comment character. Anything after the ; will be ignored.
 
 Global settings may be put into a section named <strong>[advanced help settings]</strong> -- this means that this name is reserved and it cannot be a help file in any module. The following settings may be set in this section:
 <dl>
 <dt><strong>line break</strong></dt>
 <dd>If set to any value, the line break filter will be applied to all help files defined by this module, unless that help file specifically is set otherwise. By default, the line break filter is not applied; however, help files can be much easier to write with the line break filter on.</dd>
+<dt><strong>navigation</strong></dt>
+<dd>If set to true, the navigation will be displayed at the end of the help topic: previous topic, next topic, and child topics.</dd>
 </dl>
 
 Each section after that will correspond to a single help file, and each one may have the following settings:
@@ -18,7 +20,7 @@ Each section after that will correspond to a single help file, and each one may 
 <dt><strong>weight</strong</dt>
 <dd>The weight, used for sorting topics on the administration page. Defaults to 0 of unspecified. Items with the same weight are sorted alphabetically.</dd>
 <dt><strong>parent</strong</dt>
-<dd>The topic ID to use in a hierarchy; children will be listed beneath parents in the topic list, and will have the parent in their breadcrumb trail.</dd>
+<dd>The topic ID to use in a hierarchy; children will be listed beneath parents in the topic list, and will have the parent in their breadcrumb trail. You may parent this topic to another module's topic by using module%topic as the identifier. For example, 'views%display' will make this a child of the 'display' topic in the 'views' module.</dd>
 <dt><strong>line break</strong</dt>
 <dd>If set to true, linebreaks will be converted into br and p tags automatically. If unspecified, will default to off. Set to 0 to disable the filter if this has been turned on in the global settings.</dd>
 </dl>

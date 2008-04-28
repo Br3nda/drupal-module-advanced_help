@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.15 2008/04/28 18:48:07 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.16 2008/04/28 20:33:16 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -80,11 +80,11 @@ function advanced_help_theme() {
 }
 
 function advanced_help_uasort($id_a, $id_b) {
-  global $uasort_module;
-
   $topics = advanced_help_get_topics();
-  $a = $topics[$uasort_module][$id_a];
-  $b = $topics[$uasort_module][$id_b];
+  list($module_a, $topic_a) = $id_a;
+  $a = $topics[$module_a][$topic_a];
+  list($module_b, $topic_b) = $id_b;
+  $b = $topics[$module_b][$topic_b];
 
   $a_weight = isset($a['weight']) ? $a['weight'] : 0;
   $b_weight = isset($b['weight']) ? $b['weight'] : 0;
@@ -168,8 +168,8 @@ function advanced_help_index_page($module = '') {
       return drupal_not_found();
     }
 
-    advanced_help_get_topic_hierarchy($topics[$module]);
-    $items = advanced_help_get_tree($topics, $module, $topics[$module]['']['children']);
+    advanced_help_get_topic_hierarchy($topics);
+    $items = advanced_help_get_tree($topics, $topics[$module]['']['children']);
 
     $breadcrumb[] = advanced_help_l('Help', 'admin/advanced_help');
 
@@ -212,15 +212,17 @@ function advanced_help_index_page($module = '') {
   return $output;
 }
 
-function advanced_help_get_tree($topics, $module, $topic_ids) {
-  global $uasort_module;
-  $uasort_module = $module;
+/**
+ * Build a tree of advanced help topics.
+ */
+function advanced_help_get_tree($topics, $topic_ids, $max_depth = -1, $depth = 0) {
   uasort($topic_ids, 'advanced_help_uasort');
   $items = array();
-  foreach ($topic_ids as $topic) {
+  foreach ($topic_ids as $info) {
+    list($module, $topic) = $info;
     $item = advanced_help_l($topics[$module][$topic]['title'], "help/$module/$topic");
-    if (!empty($topics[$module][$topic]['children'])) {
-      $item .= theme('item_list', advanced_help_get_tree($topics, $module, $topics[$module][$topic]['children']));
+    if (!empty($topics[$module][$topic]['children']) && ($max_depth == -1 || $depth < $max_depth)) {
+      $item .= theme('item_list', advanced_help_get_tree($topics, $topics[$module][$topic]['children'], $max_depth, $depth + 1));
     }
 
     $items[] = $item;
@@ -228,36 +230,44 @@ function advanced_help_get_tree($topics, $module, $topic_ids) {
 
   return $items;
 }
+
 /**
  * Build a hierarchy for a single module's topics.
  */
 function advanced_help_get_topic_hierarchy(&$topics) {
-  foreach ($topics as $topic => $info) {
-    // We have a blank topic that we don't want parented to
-    // itself.
-    if (!$topic) {
-      continue;
-    }
+  foreach ($topics as $module => $module_topics) {
+    foreach ($module_topics as $topic => $info) {
+      $parent_module = $module;
+      // We have a blank topic that we don't want parented to
+      // itself.
+      if (!$topic) {
+        continue;
+      }
 
-    if (empty($info['parent'])) {
-      $parent = '';
-    }
-    else if (strpos($info['parent'], '%')) {
-      // Items that parent to another module are top level here.
-      $parent = '';
-    }
-    else {
-      $parent = $info['parent'];
-      if (empty($topics[$parent])) {
-        // If it doesn't exist, top level.
+      if (empty($info['parent'])) {
         $parent = '';
       }
-    }
+      else if (strpos($info['parent'], '%')) {
+        list($parent, $parent_module) = explode($info['parent'], '%');
+        if (empty($topics[$parent_module][$parent])) {
+          // If it doesn't exist, top level.
+          $parent = '';
+        }
+      }
+      else {
+        $parent = $info['parent'];
+        if (empty($module_topics[$parent])) {
+          // If it doesn't exist, top level.
+          $parent = '';
+        }
+      }
 
-    if (!isset($topics[$parent]['children'])) {
-      $topics[$parent]['children'] = array();
+      if (!isset($topics[$parent_module][$parent]['children'])) {
+        $topics[$parent_module][$parent]['children'] = array();
+      }
+      $topics[$parent_module][$parent]['children'][] = array($module, $topic);
+      $topics[$module][$topic]['_parent'] = array($parent_module, $parent);
     }
-    $topics[$parent]['children'][] = $topic;
   }
 }
 
@@ -474,6 +484,52 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
     $output = preg_replace('/href="base_url:([^"]+)"/', 'href="' . strtr(url('$1'), array('%24' => '$')) . '"', $output);
     $output = preg_replace('/src="base_url:([^"]+)"/', 'src="' . strtr(url('$1'), array('%24' => '$')) . '"', $output);
 
+    if (!empty($info['navigation'])) {
+      $topics = advanced_help_get_topics();
+      advanced_help_get_topic_hierarchy($topics);
+      if (!empty($topics[$module][$topic]['children'])) {
+        $items = advanced_help_get_tree($topics, $topics[$module][$topic]['children']);
+        $output .= theme('item_list', $items);
+      }
+
+      list($parent_module, $parent_topic) = $topics[$module][$topic]['_parent'];
+      $siblings = $topics[$parent_module][$parent_topic]['children'];
+      $prev = $next = NULL;
+      $found = FALSE;
+      foreach ($siblings as $sibling) {
+        list($sibling_module, $sibling_topic) = $sibling;
+        if ($found) {
+          $next = $sibling;
+          break;
+        }
+        if ($sibling_module == $module && $sibling_topic == $topic) {
+          $found = TRUE;
+          continue;
+        }
+        $prev = $sibling;
+      }
+
+      if ($prev || $next) {
+        $navigation = '<div class="help-navigation clear-block">';
+
+        $navigation .= '<div class="help-previous">';
+        if ($prev) {
+          $navigation .= advanced_help_l('<< ' . $topics[$prev[0]][$prev[1]]['title'], "help/$prev[0]/$prev[1]");
+        }
+        $navigation .= '</div>';
+
+        $navigation .= '<div class="help-next">';
+        if ($next) {
+          $navigation .= advanced_help_l($topics[$next[0]][$next[1]]['title'] . ' >>', "help/$next[0]/$next[1]");
+        }
+        $navigation .= '</div>';
+
+        $navigation .= '</div>';
+
+        $output .= $navigation;
+      }
+    }
+
     return '<div class="advanced-help-topic">' . $output . '</div>';
   }
 }
@@ -530,6 +586,7 @@ function advanced_help_get_topics() {
             'file' => $file . '.html', // require extension
             'path' => $path, // not in .ini file
             'line break' => isset($topic['line break']) ? $topic['line break'] : (isset($settings['line break']) ? $settings['line break'] : FALSE),
+            'navigation' => isset($topic['line break']) ? $topic['line break'] : (isset($settings['line break']) ? $settings['line break'] : TRUE),
           );
         }
       }
