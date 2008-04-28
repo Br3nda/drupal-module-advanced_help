@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.16 2008/04/28 20:33:16 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.17 2008/04/28 20:40:59 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -730,6 +730,7 @@ function template_preprocess_advanced_help_popup(&$variables) {
   }
 
   drupal_add_css(drupal_get_path('module', 'advanced_help') . '/help-popup.css');
+  drupal_add_css(drupal_get_path('module', 'advanced_help') . '/help.css');
 
   $variables['head_title']        = implode(' | ', $head_title);
   $variables['base_path']         = base_path();
