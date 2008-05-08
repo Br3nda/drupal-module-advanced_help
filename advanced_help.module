@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.18 2008/04/29 17:40:40 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.19 2008/05/08 03:51:56 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -386,20 +386,42 @@ function advanced_help_perm() {
 
 /**
  * Display a help icon with a link to view the topic in a popup.
+ *
+ * @param $module
+ *   The module that owns this help topic.
+ * @param $topic
+ *   The identifier for the topic
+ * @param $type
+ *   - 'icon' to display the question mark icon
+ *   - 'title' to display the topic's title
+ *   - any other text to display the text. Be sure to t() it!
  */
-function theme_advanced_help_topic($module, $topic) {
-  $image = '<span>' . t('Help') . '</span>';
+function theme_advanced_help_topic($module, $topic, $type = 'icon') {
   $info = advanced_help_get_topic($module, $topic);
-
   if (!$info) {
     return;
   }
 
+  switch ($type) {
+    case 'icon':
+      $text = '<span>' . t('Help') . '</span>';
+      $class = 'advanced-help-link';
+      break;
+    case 'title':
+      $text = $info['title'];
+      $class = 'advanced-help-title';
+      break;
+    default:
+      $class = 'advanced-help-title';
+      $text = $type;
+      break;
+  }
+
   if (user_access('view advanced help popup')) {
     drupal_add_css(drupal_get_path('module', 'advanced_help') . '/help-icon.css');
-    return l($image, "help/$module/$topic", array(
+    return l($text, "help/$module/$topic", array(
       'attributes' => array(
-        'class' => 'advanced-help-link',
+        'class' => $class,
         'onclick' => "window.open(this.href, 'advanced_help_window', 'width=500,height=500,scrollbars,resizable'); return false;",
         'title' => $info['title']
       ),
@@ -408,9 +430,9 @@ function theme_advanced_help_topic($module, $topic) {
     );
   }
   else {
-    return l($image, "help/$module/$topic", array(
+    return l($text, "help/$module/$topic", array(
       'attributes' => array(
-        'class' => 'advanced-help-link',
+        'class' => $class,
         'title' => $info['title']
       ),
       'html' => TRUE)
