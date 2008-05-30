@@ -1,4 +1,4 @@
-/* $Id: help.css,v 1.4 2008/04/28 20:33:16 merlinofchaos Exp $ */
+/* $Id: help.css,v 1.5 2008/05/30 18:55:44 merlinofchaos Exp $ */
 
 .advanced-help-topic code, .advanced-help-topic pre {
   border: 1px solid #444;
@@ -17,7 +17,7 @@
 }
 
 .help-box {
-  margin: .2em;
+  margin: .5em;
 }
 
 .help-navigation {

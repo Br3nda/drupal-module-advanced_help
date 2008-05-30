@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.19 2008/05/08 03:51:56 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.20 2008/05/30 18:55:44 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -516,6 +516,7 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
 
       list($parent_module, $parent_topic) = $topics[$module][$topic]['_parent'];
       $siblings = $topics[$parent_module][$parent_topic]['children'];
+      uasort($siblings, 'advanced_help_uasort');
       $prev = $next = NULL;
       $found = FALSE;
       foreach ($siblings as $sibling) {
