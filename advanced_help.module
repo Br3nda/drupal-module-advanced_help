@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.20 2008/05/30 18:55:44 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.21 2008/09/15 18:09:25 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -137,6 +137,7 @@ function advanced_help_search_view() {
   $popup = !empty($_GET['popup']) && user_access('view advanced help popup');
   if ($popup) {
     $GLOBALS['devel_shutdown'] = FALSE; // Prevent devel module from spewing.
+    module_invoke('admin_menu', 'suppress'); // Suppress admin_menu.
     drupal_set_breadcrumb(array_reverse($breadcrumb));
     print theme('advanced_help_popup', $output);
     return;
@@ -201,6 +202,7 @@ function advanced_help_index_page($module = '') {
   $popup = !empty($_GET['popup']) && user_access('view advanced help popup');
   if ($popup) {
     $GLOBALS['devel_shutdown'] = FALSE; // Prevent devel module from spewing.
+    module_invoke('admin_menu', 'suppress'); // Suppress admin_menu.
     drupal_set_breadcrumb(array_reverse($breadcrumb));
     print theme('advanced_help_popup', $output);
     return;
@@ -366,6 +368,7 @@ function advanced_help_topic_page($module, $topic) {
 
   if ($popup) {
     $GLOBALS['devel_shutdown'] = FALSE; // Prevent devel module from spewing.
+    module_invoke('admin_menu', 'suppress'); // Suppress admin_menu.
     drupal_set_breadcrumb(array_reverse($breadcrumb));
     print theme('advanced_help_popup', $output);
     return;
