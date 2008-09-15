@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.23 2008/09/15 19:01:56 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.24 2008/09/15 19:16:10 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -576,7 +576,9 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
       drupal_add_css($info['path'] . '/' . $info['css']);
     }
 
-    return '<div class="advanced-help-topic">' . $output . '</div>';
+    $output = '<div class="advanced-help-topic">' . $output . '</div>';
+    drupal_alter('advanced_help_topic', $output, $popup);
+    return $output;
   }
 }
 
@@ -594,21 +596,21 @@ function advanced_help_get_topic($module, $topic) {
  * Search the system for all available help topics.
  */
 function advanced_help_get_topics() {
-  list ($topics, $settings) = _advanced_help_parse_ini();
-  return $topics;
+  $cache = _advanced_help_parse_ini();
+  return $cache['topics'];
 }
 
 function advanced_help_get_settings() {
-  list ($topic, $settings) = _advanced_help_parse_ini();
-  return $settings;
+  $cache = _advanced_help_parse_ini();
+  return $cache['settings'];
 }
 
 function _advanced_help_parse_ini() {
-  static $topics = NULL;
-  static $settings = NULL;
+  static $cache = NULL;
 
-  if (!isset($topics)) {
-    $topics = array();
+  if (!isset($cache)) {
+    $cache = array('topics' => array(), 'settings' => array());
+
     $help_path = drupal_get_path('module', 'advanced_help') . '/modules';
     foreach (module_list() as $module) {
       $module_path = drupal_get_path('module', $module);
@@ -627,16 +629,16 @@ function _advanced_help_parse_ini() {
         if (file_exists("$module_path/translations/help/$language->language/$module.help.ini")) {
           $translation = parse_ini_file("$module_path/translations/help/$language->language/$module.help.ini", TRUE);
         }
-        $settings[$module] = array();
+        $cache['settings'][$module] = array();
         if (!empty($info['advanced help settings'])) {
-          $settings[$module] = $info['advanced help settings'];
+          $cache['settings'][$module] = $info['advanced help settings'];
           unset($info['advanced help settings']);
         }
 
         foreach ($info as $name => $topic) {
           // Each topic should have a name, a title, a file and of course the path.
           $file = !empty($topic['file']) ? $topic['file'] : $name;
-          $topics[$module][$name] = array(
+          $cache['topics'][$module][$name] = array(
             'name' => $name,
             'title' => !empty($translation[$name]['title']) ? $translation[$name]['title'] : $topic['title'],
             'weight' => isset($topic['weight']) ? $topic['weight'] : 0,
@@ -645,15 +647,16 @@ function _advanced_help_parse_ini() {
             'popup height' => isset($topic['popup height']) ? $topic['popup height'] : 500,
             'file' => $file . '.html', // require extension
             'path' => $path, // not in .ini file
-            'line break' => isset($topic['line break']) ? $topic['line break'] : (isset($settings[$module]['line break']) ? $settings[$module]['line break'] : FALSE),
-            'navigation' => isset($topic['navigation']) ? $topic['navigation'] : (isset($settings[$module]['navigation']) ? $settings[$module]['navigation'] : TRUE),
-            'css' => isset($topic['css']) ? $topic['css'] : (isset($settings[$module]['css']) ? $settings[$module]['css'] : NULL),
+            'line break' => isset($topic['line break']) ? $topic['line break'] : (isset($cache['settings'][$module]['line break']) ? $cache['settings'][$module]['line break'] : FALSE),
+            'navigation' => isset($topic['navigation']) ? $topic['navigation'] : (isset($cache['settings'][$module]['navigation']) ? $cache['settings'][$module]['navigation'] : TRUE),
+            'css' => isset($topic['css']) ? $topic['css'] : (isset($cache['settings'][$module]['css']) ? $cache['settings'][$module]['css'] : NULL),
           );
         }
       }
     }
+    drupal_alter('advanced_help_topic_info', $cache);
   }
-  return array($topics, $settings);
+  return $cache;
 }
 
 /**
