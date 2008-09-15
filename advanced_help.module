@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.22 2008/09/15 18:58:47 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.23 2008/09/15 19:01:56 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -441,7 +441,7 @@ function theme_advanced_help_topic($module, $topic, $type = 'icon') {
     return l($text, "help/$module/$topic", array(
       'attributes' => array(
         'class' => $class,
-        'onclick' => "window.open(this.href, 'advanced_help_window', 'width=500,height=500,scrollbars,resizable'); return false;",
+        'onclick' => "window.open(this.href, 'advanced_help_window', 'width=". $info['popup width'] .",height=". $info['popup height'] .",scrollbars,resizable'); return false;",
         'title' => $info['title']
       ),
       'query' => array('popup' => TRUE),
@@ -641,6 +641,8 @@ function _advanced_help_parse_ini() {
             'title' => !empty($translation[$name]['title']) ? $translation[$name]['title'] : $topic['title'],
             'weight' => isset($topic['weight']) ? $topic['weight'] : 0,
             'parent' => isset($topic['parent']) ? $topic['parent'] : 0,
+            'popup width' => isset($topic['popup width']) ? $topic['popup width'] : 500,
+            'popup height' => isset($topic['popup height']) ? $topic['popup height'] : 500,
             'file' => $file . '.html', // require extension
             'path' => $path, // not in .ini file
             'line break' => isset($topic['line break']) ? $topic['line break'] : (isset($settings[$module]['line break']) ? $settings[$module]['line break'] : FALSE),

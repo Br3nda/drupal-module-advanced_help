@@ -1,7 +1,7 @@
-<!-- $Id: ini-file.html,v 1.5 2008/09/15 18:58:48 merlinofchaos Exp $ -->
+<!-- $Id: ini-file.html,v 1.6 2008/09/15 19:01:56 merlinofchaos Exp $ -->
 The advanced help configuration file is in simple .ini file format, divided into sections for each help file, plus an optional section for global settings that might be inherited for each help file.
 
-The first line of an advanced help ini file should be ;$Id: ini-file.html,v 1.5 2008/09/15 18:58:48 merlinofchaos Exp $ which will be a comment providing the CVS identifier for the file. The ; indicates a comment character. Anything after the ; will be ignored.
+The first line of an advanced help ini file should be ;$Id: ini-file.html,v 1.6 2008/09/15 19:01:56 merlinofchaos Exp $ which will be a comment providing the CVS identifier for the file. The ; indicates a comment character. Anything after the ; will be ignored.
 
 Global settings may be put into a section named <strong>[advanced help settings]</strong> -- this means that this name is reserved and it cannot be a help file in any module. The following settings may be set in this section:
 <dl>
@@ -31,6 +31,10 @@ Each section after that will correspond to a single help file, and each one may 
 <dd>If set to true, linebreaks will be converted into br and p tags automatically. If unspecified, will default to off. Set to 0 to disable the filter if this has been turned on in the global settings.</dd>
 <dt><strong>css</strong></dt>
 <dd>Specify a css file that will be used for this file. This .css file must reside in the help directory along with the .html files. This will override any .css file added by the global system.</dd>
+<dt><strong>popup width</strong></dt>
+<dd>The width in pixels of the popup window.  Defaults to 500 if unspecified.</dd>
+<dt><strong>popup height</strong></dt>
+<dd>The height in pixels of the popup window.  Defaults to 500 if unspecified.</dd>
 </dl>
 
 For example, here is a version of the <strong>advanced_help.help.ini</strong> file:
