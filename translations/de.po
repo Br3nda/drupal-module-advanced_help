@@ -1,0 +1,115 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Advanced Help\n"
+"POT-Creation-Date: 2008-06-27 12:44+0200\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Frank Tartler <rastatt@drupal.org>\n"
+"Language-Team: Frank Tartler <rastatt@drupal.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: advanced_help.module:121
+msgid "Search results"
+msgstr "Suchergebnisse"
+
+#: advanced_help.module:124
+msgid "Your search yielded no results"
+msgstr "Ihre Suche ergab kein Ergebnis"
+
+#: advanced_help.module:162
+msgid "Enable the search module to search help."
+msgstr "Das Suchmodul aktivieren, um die Hilfe durchsuchen zu können."
+
+#: advanced_help.module:176
+msgid "@module help index"
+msgstr "@module Hilfe-Index"
+
+#: advanced_help.module:197
+msgid "Module help index"
+msgstr "Modul-Hilfe-Index"
+
+#: advanced_help.module:278;49
+msgid "Search help"
+msgstr "Hilfe durchsuchen"
+
+#: advanced_help.module:293
+msgid "Please enter some keywords."
+msgstr "Geben Sie ein paar Schlüsselworte ein"
+
+#: advanced_help.module:360;407;632
+msgid "Help"
+msgstr "Hilfe"
+
+#: advanced_help.module:364
+msgid "Missing help topic."
+msgstr "Hilfethema fehlt."
+
+#: advanced_help.module:384
+msgid "view advanced help topic"
+msgstr "Thema der erweiterten Hilfe ansehen"
+
+#: advanced_help.module:384
+msgid "view advanced help popup"
+msgstr "Popup-Fenster der erweiterten Hilfe ansehen"
+
+#: advanced_help.module:384
+msgid "view advanced help index"
+msgstr "Index der erweiterten Hilfe ansehen"
+
+#: advanced_help.module:0
+msgid "advanced_help"
+msgstr "advanced_help"
+
+#: advanced_help.install:23
+msgid "Stores search index correlations for advanced help topics."
+msgstr "Speichert Suchindex-Übereinstimmungen für Themen der erweiterten Hilfe"
+
+#: advanced_help.install:29
+msgid "The primary key to give to the search engine for this topic."
+msgstr "Der primäre Schlüssel dieses Themas für die Suchmaschine."
+
+#: advanced_help.install:37
+msgid "The module that owns this topic."
+msgstr "Das Modul, zum dem dieses Thema gehört."
+
+#: advanced_help.install:44
+msgid "The topic id."
+msgstr "Die Themen-ID."
+
+#: advanced_help.install:51
+msgid "The language this search index relates to."
+msgstr "Die Sprache, auf die sich dieser Index bezieht."
+
+#: advanced_help.info:0
+msgid "Advanced help"
+msgstr "Erweiterte Hilfe"
+
+#: advanced_help.info:0
+msgid "Allow advanced help and documentation."
+msgstr "Ermöglicht erweiterte Hilfe und Dokumentation."
+
+#: help_example/help_example.module:24
+msgid "Click the help icon to view some example help about the PHP programming language (from wikipedia.org). Be sure to run cron to update the index if you want to try out the search features."
+msgstr "Klicken Sie auf das Hilfe-Icon, um eine Beispiel-Hilfe über die PHP-Programmiersprache zu sehen( von wikipedia.org). Stellen Sie sicher, dass Cron den Index aktualisiert, wenn Sie die Suchfunktionen ausprobieren möchten."
+
+#: help_example/help_example.module:14
+msgid "Example help"
+msgstr "Hilfe-Beispiel"
+
+#: help_example/help_example.module:0
+msgid "help_example"
+msgstr "help_example"
+
+#: help_example/help_example.info:0
+msgid "Advanced help example"
+msgstr "Beispiel für erweiterte Hilfe"
+
+#: help_example/help_example.info:0
+msgid "A example help module to demonstrate the advanced help module."
+msgstr "Das Hilfe-Beispiel-Modul, um das Modul 'Advanced Help' (Erweitrerte Hilfe) zu demonstrieren."
+
