@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.21 2008/09/15 18:09:25 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.22 2008/09/15 18:58:47 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -191,7 +191,16 @@ function advanced_help_index_page($module = '') {
     $items = array();
     foreach ($modules as $module => $module_name) {
       if (!empty($topics[$module])) {
-        $items[] = advanced_help_l($module_name, "admin/advanced_help/$module");
+        if (isset($settings[$module]['index name'])) {
+          $name = $settings[$module]['index name'];
+        }
+        elseif (isset($settings[$module]['name'])) {
+          $name = $settings[$module]['name'];
+        }
+        else {
+         $name = t($module_name);
+        }
+        $items[] = advanced_help_l($name, "admin/advanced_help/$module");
       }
     }
 
@@ -311,9 +320,16 @@ function advanced_help_search_form_submit($form, &$form_state) {
  * Small helper function to get a module's proper name.
  */
 function advanced_help_get_module_name($module) {
-  $info = db_fetch_object(db_query("SELECT * FROM {system} WHERE name = '%s'", $module));
-  $info = unserialize($info->info);
-  return t($info['name']);
+  $settings = advanced_help_get_settings();
+  if (isset($settings[$module]['name'])) {
+    $name = $settings[$module]['name'];
+  }
+  else {
+    $info = db_fetch_object(db_query("SELECT * FROM {system} WHERE name = '%s'", $module));
+    $info = unserialize($info->info);
+    $name = t($info['name']);
+  }
+  return $name;
 }
 
 /**
@@ -578,7 +594,19 @@ function advanced_help_get_topic($module, $topic) {
  * Search the system for all available help topics.
  */
 function advanced_help_get_topics() {
+  list ($topics, $settings) = _advanced_help_parse_ini();
+  return $topics;
+}
+
+function advanced_help_get_settings() {
+  list ($topic, $settings) = _advanced_help_parse_ini();
+  return $settings;
+}
+
+function _advanced_help_parse_ini() {
   static $topics = NULL;
+  static $settings = NULL;
+
   if (!isset($topics)) {
     $topics = array();
     $help_path = drupal_get_path('module', 'advanced_help') . '/modules';
@@ -599,9 +627,9 @@ function advanced_help_get_topics() {
         if (file_exists("$module_path/translations/help/$language->language/$module.help.ini")) {
           $translation = parse_ini_file("$module_path/translations/help/$language->language/$module.help.ini", TRUE);
         }
-        $settings = array();
+        $settings[$module] = array();
         if (!empty($info['advanced help settings'])) {
-          $settings = $info['advanced help settings'];
+          $settings[$module] = $info['advanced help settings'];
           unset($info['advanced help settings']);
         }
 
@@ -615,15 +643,15 @@ function advanced_help_get_topics() {
             'parent' => isset($topic['parent']) ? $topic['parent'] : 0,
             'file' => $file . '.html', // require extension
             'path' => $path, // not in .ini file
-            'line break' => isset($topic['line break']) ? $topic['line break'] : (isset($settings['line break']) ? $settings['line break'] : FALSE),
-            'navigation' => isset($topic['navigation']) ? $topic['navigation'] : (isset($settings['navigation']) ? $settings['navigation'] : TRUE),
-            'css' => isset($topic['css']) ? $topic['css'] : (isset($settings['css']) ? $settings['css'] : NULL),
+            'line break' => isset($topic['line break']) ? $topic['line break'] : (isset($settings[$module]['line break']) ? $settings[$module]['line break'] : FALSE),
+            'navigation' => isset($topic['navigation']) ? $topic['navigation'] : (isset($settings[$module]['navigation']) ? $settings[$module]['navigation'] : TRUE),
+            'css' => isset($topic['css']) ? $topic['css'] : (isset($settings[$module]['css']) ? $settings[$module]['css'] : NULL),
           );
         }
       }
     }
   }
-  return $topics;
+  return array($topics, $settings);
 }
 
 /**
