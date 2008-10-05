@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: German translation for Advanced Help module\n"
 "POT-Creation-Date: 2008-10-05 22:43+0200\n"
-"PO-Revision-Date: 2008-10-05 22:46+0100\n"
+"PO-Revision-Date: 2008-10-05 23:07+0100\n"
 "Last-Translator: Alexander Haß\n"
 "Language-Team: Frank Tartler <rastatt@drupal.org>\n"
 "MIME-Version: 1.0\n"
@@ -27,7 +27,7 @@ msgstr "Das Suchmodul aktivieren, um die Hilfe zu durchsuchen."
 
 #: advanced_help.module:177
 msgid "@module help index"
-msgstr "Hilfe-Index für @module"
+msgstr "@module-Hilfe-Index"
 
 #: advanced_help.module:207
 msgid "Module help index"
