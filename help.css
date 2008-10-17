@@ -1,4 +1,4 @@
-/* $Id: help.css,v 1.5 2008/05/30 18:55:44 merlinofchaos Exp $ */
+/* $Id: help.css,v 1.6 2008/10/17 19:00:49 merlinofchaos Exp $ */
 
 .advanced-help-topic code, .advanced-help-topic pre {
   border: 1px solid #444;
@@ -7,6 +7,15 @@
   padding: .2em;
   display: block;
 }
+
+.advanced-help-topic h3,
+.advanced-help-topic h4,
+.advanced-help-topic h5,
+.advanced-help-topic h6,
+.advanced-help-topic dt {
+  font-weight: bold;
+}
+
 
 .help-left {
   float: left;
