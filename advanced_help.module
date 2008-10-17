@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.29 2008/10/17 19:58:49 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.30 2008/10/17 20:02:08 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -183,7 +183,7 @@ function advanced_help_index_page($module = '') {
     advanced_help_get_topic_hierarchy($topics);
     $items = advanced_help_get_tree($topics, $topics[$module]['']['children']);
 
-    $breadcrumb[] = advanced_help_l(t('Help)', 'admin/advanced_help');
+    $breadcrumb[] = advanced_help_l(t('Help'), 'admin/advanced_help');
 
     drupal_set_title(t('@module help index', array('@module' => advanced_help_get_module_name($module))));
     $output .= theme('item_list', $items);
