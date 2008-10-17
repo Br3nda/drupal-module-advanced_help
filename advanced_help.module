@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.25 2008/10/17 18:55:38 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.26 2008/10/17 19:04:50 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -103,7 +103,7 @@ function advanced_help_uasort($id_a, $id_b) {
  */
 function advanced_help_search_view() {
   if (!module_exists('search')) {
-    drupal_not_found();
+    return MENU_NOT_FOUND;
   }
 
   $breadcrumb[] = advanced_help_l('Help', 'admin/advanced_help');
