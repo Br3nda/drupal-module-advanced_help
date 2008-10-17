@@ -1,4 +1,4 @@
-/* $Id: help-icon.css,v 1.4 2008/05/16 03:45:38 merlinofchaos Exp $ */
+/* $Id: help-icon.css,v 1.5 2008/10/17 19:38:00 merlinofchaos Exp $ */
 
 .advanced-help-link {
   width: 12px;
@@ -8,6 +8,7 @@
   display: block;
   float: left; /* this is cheesy, I know */
   margin-top: 2px;
+  padding: 0px;
 }
 
 .advanced-help-link span {
