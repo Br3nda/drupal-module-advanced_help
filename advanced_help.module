@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.30 2008/10/17 20:02:08 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.31 2008/10/17 20:05:24 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -452,7 +452,7 @@ function theme_advanced_help_topic($module, $topic, $type = 'icon') {
     return l($text, "help/$module/$topic", array(
       'attributes' => array(
         'class' => $class,
-        'onclick' => "window.open(this.href, 'advanced_help_window', 'width=". $info['popup width'] .",height=". $info['popup height'] .",scrollbars,resizable'); return false;",
+        'onclick' => "var w=window.open(this.href, 'advanced_help_window', 'width=". $info['popup width'] .",height=". $info['popup height'] .",scrollbars,resizable'); w.focus(); return false;",
         'title' => $info['title']
       ),
       'query' => array('popup' => TRUE),
