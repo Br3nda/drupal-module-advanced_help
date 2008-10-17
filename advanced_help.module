@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.31 2008/10/17 20:05:24 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.32 2008/10/17 21:49:42 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -402,7 +402,7 @@ function advanced_help_topic_page($module, $topic) {
   }
 
   drupal_add_css(drupal_get_path('module', 'advanced_help') . '/help.css');
-  $breadcrumb[] = l('Home', '');
+  $breadcrumb[] = l(t('Home'), '');
   drupal_set_breadcrumb(array_reverse($breadcrumb));
   return $output;
 }
