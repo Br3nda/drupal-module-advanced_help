@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.26 2008/10/17 19:04:50 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.27 2008/10/17 19:13:03 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -538,6 +538,14 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
       }
 
       list($parent_module, $parent_topic) = $topics[$module][$topic]['_parent'];
+      if ($parent_topic) {
+        $parent = $topics[$module][$topic]['_parent'];
+        $up = "help/$parent[0]/$parent[1]";
+      }
+      else {
+        $up = "admin/advanced_help/$module";
+      }
+
       $siblings = $topics[$parent_module][$parent_topic]['children'];
       uasort($siblings, 'advanced_help_uasort');
       $prev = $next = NULL;
@@ -555,20 +563,18 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
         $prev = $sibling;
       }
 
-      if ($prev || $next) {
+      if ($prev || $up || $next) {
         $navigation = '<div class="help-navigation clear-block">';
 
-        $navigation .= '<div class="help-previous">';
         if ($prev) {
-          $navigation .= advanced_help_l('<< ' . $topics[$prev[0]][$prev[1]]['title'], "help/$prev[0]/$prev[1]");
+          $navigation .= advanced_help_l('<< ' . $topics[$prev[0]][$prev[1]]['title'], "help/$prev[0]/$prev[1]", array('attributes' => array('class' => 'help-left')));
         }
-        $navigation .= '</div>';
-
-        $navigation .= '<div class="help-next">';
+        if ($up) {
+          $navigation .= advanced_help_l(t('Up'), $up, array('attributes' => array('class' => $prev ? 'help-up' : 'help-up-noleft')));
+        }
         if ($next) {
-          $navigation .= advanced_help_l($topics[$next[0]][$next[1]]['title'] . ' >>', "help/$next[0]/$next[1]");
+          $navigation .= advanced_help_l($topics[$next[0]][$next[1]]['title'] . ' >>', "help/$next[0]/$next[1]", array('attributes' => array('class' => 'help-right')));
         }
-        $navigation .= '</div>';
 
         $navigation .= '</div>';
 
