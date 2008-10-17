@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.28 2008/10/17 19:53:53 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.29 2008/10/17 19:58:49 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -38,13 +38,24 @@
  */
 function advanced_help_menu() {
   // View help topic index.
-  $items['admin/advanced_help'] = array(
-    'title' => module_exists('help') ? 'Advanced help' : 'Help',
-    'page callback' => 'advanced_help_index_page',
-    'access arguments' => array('view advanced help index'),
-    'weight' => 9,
-  );
 
+  // This is structured a little oddly so POTX can properly handle the translation.
+  if (module_exists('help')) {
+    $items['admin/advanced_help'] = array(
+      'title' => 'Advanced help',
+      'page callback' => 'advanced_help_index_page',
+      'access arguments' => array('view advanced help index'),
+      'weight' => 9,
+    );
+  }
+  else {
+    $items['admin/advanced_help'] = array(
+      'title' => 'Help',
+      'page callback' => 'advanced_help_index_page',
+      'access arguments' => array('view advanced help index'),
+      'weight' => 9,
+    );
+  }
   $items['advanced_help/search/%menu_tail'] = array(
     'title' => 'Search help',
     'page callback' => 'advanced_help_search_view',
