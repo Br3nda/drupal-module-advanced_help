@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.36 2008/10/27 20:59:06 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.37 2008/10/27 21:17:35 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -211,7 +211,7 @@ function advanced_help_index_page($module = '') {
 
     $items = array();
     foreach ($modules as $module => $module_name) {
-      if (!empty($topics[$module])) {
+      if (!empty($topics[$module]) && empty($settings[$module]['hide'])) {
         if (isset($settings[$module]['index name'])) {
           $name = $settings[$module]['index name'];
         }
