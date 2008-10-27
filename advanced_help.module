@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.38 2008/10/27 21:37:31 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.39 2008/10/27 22:02:13 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -484,6 +484,15 @@ function theme_advanced_help_topic($module, $topic, $type = 'icon') {
  * Load and render a help topic.
  */
 function advanced_help_get_topic_filename($module, $topic) {
+  $info = advanced_help_get_topic_file_info($module, $topic);
+  if ($info) {
+    return "./$info[path]/$info[file]";
+  }
+}
+/**
+ * Load and render a help topic.
+ */
+function advanced_help_get_topic_file_info($module, $topic) {
   init_theme();
   global $language;
 
@@ -501,7 +510,7 @@ function advanced_help_get_topic_filename($module, $topic) {
 
   foreach ($paths as $path) {
     if (file_exists("./$path/$info[file]")) {
-      return "./$path/$info[file]";
+      return array('path' => $path, 'file' => $info['file']);
     }
   }
 }
@@ -510,9 +519,11 @@ function advanced_help_get_topic_filename($module, $topic) {
  * Load and render a help topic.
  */
 function advanced_help_view_topic($module, $topic, $popup = FALSE) {
-  $file = advanced_help_get_topic_filename($module, $topic);
-  $info = advanced_help_get_topic($module, $topic);
-  if ($file) {
+  $file_info = advanced_help_get_topic_file_info($module, $topic);
+  if ($file_info) {
+    $info = advanced_help_get_topic($module, $topic);
+    $file = "./$file_info[path]/$file_info[file]";
+
     // @todo is this trusted output?
     $output = file_get_contents($file);
     // Make some exchanges. The strtr is because url() translates $ into %24
@@ -544,6 +555,11 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
     $output = preg_replace('/href="path:([^"]+)"/', 'href="' . $base_path . $info['path'] . '/$1"', $output);
     $output = preg_replace('/src="path:([^"]+)"/', 'src="' . $base_path . $info['path'] . '/$1"', $output);
     $output = str_replace('&path&', $base_path . $info['path'] .'/', $output);
+
+    // Change 'trans_path:' to the URL to the actual help directory.
+    $output = preg_replace('/href="trans_path:([^"]+)"/', 'href="' . $base_path . $file_info['path'] . '/$1"', $output);
+    $output = preg_replace('/src="trans_path:([^"]+)"/', 'src="' . $base_path . $file_info['path'] . '/$1"', $output);
+    $output = str_replace('&trans_path&', $base_path . $file_info['path'] .'/', $output);
 
     // Change 'base_url:' to the URL to the site.
     $output = preg_replace('/href="base_url:([^"]+)"/', 'href="' . strtr(url('$1'), array('%24' => '$')) . '"', $output);
