@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.37 2008/10/27 21:17:35 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.38 2008/10/27 21:37:31 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -654,7 +654,7 @@ function _advanced_help_parse_ini() {
         $path = "$help_path/$module";
         $info = parse_ini_file("./$help_path/$module/$module.help.ini", TRUE);
       }
-      else {
+      elseif (!file_exists("$module_path/help")) {
         // Look for one or more README files.
         $files = file_scan_directory("./$module_path", '^(README|readme).*\.(txt|TXT)$', array('.', '..', 'CVS'), 0, FALSE);
         $path = "./$module_path";
@@ -662,6 +662,7 @@ function _advanced_help_parse_ini() {
           $info[$fileinfo->basename] = array('line break' => TRUE, 'readme file' => TRUE, 'file' => $fileinfo->basename, 'title' => $fileinfo->name);
         }
       }
+
       if (!empty($info)) {
         // Get translated titles:
         global $language;
