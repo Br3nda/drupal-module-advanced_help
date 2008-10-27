@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.39 2008/10/27 22:02:13 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.40 2008/10/27 22:43:28 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -685,10 +685,20 @@ function _advanced_help_parse_ini() {
         if (file_exists("$module_path/translations/help/$language->language/$module.help.ini")) {
           $translation = parse_ini_file("$module_path/translations/help/$language->language/$module.help.ini", TRUE);
         }
+
         $cache['settings'][$module] = array();
         if (!empty($info['advanced help settings'])) {
           $cache['settings'][$module] = $info['advanced help settings'];
           unset($info['advanced help settings']);
+
+          // Check translated strings for translatable global settings.
+          if (isset($translation['advanced help settings']['name'])) {
+            $cache['settings']['name'] = $translation['advanced help settings']['name'];
+          }
+          if (isset($translation['advanced help settings']['index name'])) {
+            $cache['settings']['index name'] = $translation['advanced help settings']['index name'];
+          }
+
         }
 
         foreach ($info as $name => $topic) {
