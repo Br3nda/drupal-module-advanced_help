@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.35 2008/10/27 20:56:42 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.36 2008/10/27 20:59:06 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -280,7 +280,7 @@ function advanced_help_get_topic_hierarchy(&$topics) {
         $parent = '';
       }
       else if (strpos($info['parent'], '%')) {
-        list($parent, $parent_module) = explode($info['parent'], '%');
+        list($parent_module, $parent) = explode('%', $info['parent']);
         if (empty($topics[$parent_module][$parent])) {
           // If it doesn't exist, top level.
           $parent = '';
