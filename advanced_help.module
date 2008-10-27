@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.32 2008/10/17 21:49:42 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.33 2008/10/27 20:28:05 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -164,6 +164,7 @@ function advanced_help_search_view() {
  */
 function advanced_help_index_page($module = '') {
   $topics = advanced_help_get_topics();
+  $settings = advanced_help_get_settings();
 
   // Print a search widget.
   $output = '';
