@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.33 2008/10/27 20:28:05 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.34 2008/10/27 20:31:15 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -641,9 +641,17 @@ function _advanced_help_parse_ini() {
         $path = "$module_path/help";
         $info = parse_ini_file("./$module_path/help/$module.help.ini", TRUE);
       }
-      else if (file_exists("$help_path/$module/$module.help.ini")) {
+      elseif (file_exists("$help_path/$module/$module.help.ini")) {
         $path = "$help_path/$module";
         $info = parse_ini_file("./$help_path/$module/$module.help.ini", TRUE);
+      }
+      else {
+        // Look for one or more README files.
+        $files = file_scan_directory("./$module_path", '^(README|readme).*\.(txt|TXT)$', array('.', '..', 'CVS'), 0, FALSE);
+        $path = "./$module_path";
+        foreach ($files as $name => $fileinfo) {
+          $info[$fileinfo->basename] = array('line break' => TRUE, 'readme file' => TRUE, 'file' => $fileinfo->basename, 'title' => $fileinfo->name);
+        }
       }
       if (!empty($info)) {
         // Get translated titles:
@@ -667,7 +675,7 @@ function _advanced_help_parse_ini() {
             'parent' => isset($topic['parent']) ? $topic['parent'] : 0,
             'popup width' => isset($topic['popup width']) ? $topic['popup width'] : 500,
             'popup height' => isset($topic['popup height']) ? $topic['popup height'] : 500,
-            'file' => $file . '.html', // require extension
+            'file' => isset($topic['readme file']) ? $file : $file . '.html', // require extension
             'path' => $path, // not in .ini file
             'line break' => isset($topic['line break']) ? $topic['line break'] : (isset($cache['settings'][$module]['line break']) ? $cache['settings'][$module]['line break'] : FALSE),
             'navigation' => isset($topic['navigation']) ? $topic['navigation'] : (isset($cache['settings'][$module]['navigation']) ? $cache['settings'][$module]['navigation'] : TRUE),
