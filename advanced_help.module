@@ -1,5 +1,5 @@
 <?php
-// $Id: advanced_help.module,v 1.40 2008/10/27 22:43:28 merlinofchaos Exp $
+// $Id: advanced_help.module,v 1.41 2008/10/28 17:33:47 merlinofchaos Exp $
 /**
  * @file advanced_help.module
  *
@@ -529,14 +529,6 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
     // Make some exchanges. The strtr is because url() translates $ into %24
     // but we need to change it back for the regex replacement.
 
-    // Run the line break filter if requested
-    if (!empty($info['line break'])) {
-      // Remove the header since it adds an extra <br /> to the filter.
-      $output = preg_replace('/^<!--[^\n]*-->\n/', '', $output);
-
-      $output = _filter_autop($output);
-    }
-
     // Change 'topic:' to the URL for another help topic.
     if ($popup) {
       $output = preg_replace('/href="topic:([^"]+)"/', 'href="' . strtr(url('help/$1', array('query' => 'popup=true')), array('%24' => '$')) . '"', $output);
@@ -565,6 +557,14 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
     $output = preg_replace('/href="base_url:([^"]+)"/', 'href="' . strtr(url('$1'), array('%24' => '$')) . '"', $output);
     $output = preg_replace('/src="base_url:([^"]+)"/', 'src="' . strtr(url('$1'), array('%24' => '$')) . '"', $output);
     $output = str_replace('&base_url&', $base_path, $output);
+
+    // Run the line break filter if requested
+    if (!empty($info['line break'])) {
+      // Remove the header since it adds an extra <br /> to the filter.
+      $output = preg_replace('/^<!--[^\n]*-->\n/', '', $output);
+
+      $output = _filter_autop($output);
+    }
 
     if (!empty($info['navigation'])) {
       $topics = advanced_help_get_topics();
@@ -682,6 +682,7 @@ function _advanced_help_parse_ini() {
       if (!empty($info)) {
         // Get translated titles:
         global $language;
+        $translation = array();
         if (file_exists("$module_path/translations/help/$language->language/$module.help.ini")) {
           $translation = parse_ini_file("$module_path/translations/help/$language->language/$module.help.ini", TRUE);
         }
