@@ -1,17 +1,15 @@
 <?php
-// $Id: advanced_help.install,v 1.4 2009/10/11 05:47:49 redndahead Exp $
+// $Id: advanced_help.install,v 1.4.2.1 2010/01/13 23:08:00 fgm Exp $
 /**
- * @file advanced_help.install
+ * @file
  * Contains install and update functions for advanced_help.
  */
 
 function advanced_help_install() {
   drupal_set_message('Installing advanced_help.');
-  drupal_install_schema('advanced_help');
 }
 
 function advanced_help_uninstall() {
-  drupal_uninstall_schema('advanced_help');
   variable_del('advanced_help_last_cron');
 }
 
@@ -53,6 +51,9 @@ function advanced_help_schema() {
     ),
     'primary key' => array('sid'),
     'indexes' => array('language' => array('language')),
+    'foreign keys' => array(
+      'module' => array('system' => 'name'),
+    ),
   );
 
   return $schema;
