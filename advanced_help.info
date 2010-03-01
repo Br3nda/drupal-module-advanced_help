@@ -1,7 +1,6 @@
-; $Id: advanced_help.info,v 1.2.4.1 2010/01/13 23:08:00 fgm Exp $
+; $Id: advanced_help.info,v 1.2.4.2 2010/03/01 21:12:39 fgm Exp $
 name = Advanced help
 description = Allow advanced help and documentation.
 core = 7.x
 files[] = advanced_help.module
 files[] = advanced_help.install
-

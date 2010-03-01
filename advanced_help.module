@@ -1,7 +1,7 @@
 <?php
-// $Id: advanced_help.module,v 1.41.2.1 2010/01/13 23:08:00 fgm Exp $
+// $Id: advanced_help.module,v 1.41.2.2 2010/03/01 21:12:39 fgm Exp $
 /**
- * @file advanced_help.module
+ * @file
  *
  * Pluggable system to provide advanced help facilities for Drupal and modules.
  *
@@ -34,7 +34,7 @@
  */
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function advanced_help_menu() {
   // View help topic index.
@@ -75,8 +75,8 @@ function advanced_help_menu() {
 }
 
 /**
-* Inplementation of hook_menu_alter().
-**/
+ * Implements hook_menu_alter().
+ */
 function advanced_help_menu_alter(&$callbacks) {
   // We need to fix the menu item provided by search module to restrict access.
   $callbacks['search/advanced_help/%menu_tail']['access callback'] = 'user_access';
@@ -84,11 +84,15 @@ function advanced_help_menu_alter(&$callbacks) {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function advanced_help_theme() {
   $hooks['advanced_help_topic'] = array(
-    'variables' => array('module' => NULL, 'topic' => NULL),
+    'variables' => array(
+      'module' => NULL,
+      'topic'  => NULL,
+      'type'   => 'icon',
+    ),
   );
 
   $hooks['advanced_help_popup'] = array(
@@ -217,7 +221,7 @@ function advanced_help_index_page($module = '') {
           $name = $settings[$module]['name'];
         }
         else {
-         $name = t($module_name);
+          $name = t($module_name);
         }
         $items[] = advanced_help_l($name, "admin/advanced_help/$module");
       }
@@ -345,7 +349,6 @@ function advanced_help_search_form_submit($form, &$form_state) {
   }
 }
 
-
 /**
  * Small helper function to get a module's proper name.
  *
@@ -432,7 +435,7 @@ function advanced_help_topic_page($module, $topic) {
 }
 
 /**
- * Implementation of hook_permission().
+ * Implements hook_permission().
  */
 function advanced_help_permission() {
   return array(
@@ -445,16 +448,20 @@ function advanced_help_permission() {
 /**
  * Display a help icon with a link to view the topic in a popup.
  *
- * @param $module
- *   The module that owns this help topic.
- * @param $topic
- *   The identifier for the topic
- * @param $type
- *   - 'icon' to display the question mark icon
- *   - 'title' to display the topic's title
- *   - any other text to display the text. Be sure to t() it!
+ * @param $variables
+ *   An associative array containing:
+ *   - module: The module that owns this help topic.
+ *   - topic: The identifier for the topic
+ *   - type
+ *     - 'icon' to display the question mark icon
+ *     - 'title' to display the topic's title
+ *     - any other text to display the text. Be sure to t() it!
  */
-function theme_advanced_help_topic($module, $topic, $type = 'icon') {
+function theme_advanced_help_topic($variables) {
+  $module = $variables['module'];
+  $topic  = $variables['topic'];
+  $type   = $variables['type'];
+
   $info = advanced_help_get_topic($module, $topic);
   if (!$info) {
     return;
@@ -482,7 +489,7 @@ function theme_advanced_help_topic($module, $topic, $type = 'icon') {
     return l($text, "help/$module/$topic", array(
       'attributes' => array(
         'class' => $class,
-        'onclick' => "var w=window.open(this.href, 'advanced_help_window', 'width=". $info['popup width'] .",height=". $info['popup height'] .",scrollbars,resizable'); w.focus(); return false;",
+        'onclick' => "var w=window.open(this.href, 'advanced_help_window', 'width=" . $info['popup width'] . ",height=" . $info['popup height'] . ",scrollbars,resizable'); w.focus(); return false;",
         'title' => $info['title']
       ),
       'query' => array('popup' => TRUE),
@@ -556,12 +563,12 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
     // Change 'topic:' to the URL for another help topic.
     if ($popup) {
       $output = preg_replace('/href="topic:([^"]+)"/', 'href="' . strtr(url('help/$1', array('query' => array('popup' => 'true'))), array('%24' => '$')) . '"', $output);
-      $output = preg_replace('/src="topic:([^"]+)"/', 'src="' .   strtr(url('help/$1', array('query' => array('popup' => 'true'))), array('%24' => '$')) . '"', $output);
+      $output = preg_replace('/src="topic:([^"]+)"/',  'src="' .  strtr(url('help/$1', array('query' => array('popup' => 'true'))), array('%24' => '$')) . '"', $output);
       $output = preg_replace('/&topic:([^"]+)&/',                 strtr(url('help/$1', array('query' => array('popup' => 'true'))), array('%24' => '$'))      , $output);
     }
     else {
       $output = preg_replace('/href="topic:([^"]+)"/', 'href="' . strtr(url('help/$1'), array('%24' => '$')) . '"', $output);
-      $output = preg_replace('/src="topic:([^"]+)"/', 'src="' . strtr(url('help/$1'), array('%24' => '$')) . '"', $output);
+      $output = preg_replace('/src="topic:([^"]+)"/',  'src="'  . strtr(url('help/$1'), array('%24' => '$')) . '"', $output);
       $output = preg_replace('/&topic:([^"]+)&/', strtr(url('help/$1'), array('%24' => '$')), $output);
     }
 
@@ -569,17 +576,17 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
 
     // Change 'path:' to the URL to the base help directory.
     $output = preg_replace('/href="path:([^"]+)"/', 'href="' . $base_path . $info['path'] . '/$1"', $output);
-    $output = preg_replace('/src="path:([^"]+)"/', 'src="' . $base_path . $info['path'] . '/$1"', $output);
-    $output = str_replace('&path&', $base_path . $info['path'] .'/', $output);
+    $output = preg_replace('/src="path:([^"]+)"/',  'src="'  . $base_path . $info['path'] . '/$1"', $output);
+    $output = str_replace('&path&',                            $base_path . $info['path'] . '/',    $output);
 
     // Change 'trans_path:' to the URL to the actual help directory.
     $output = preg_replace('/href="trans_path:([^"]+)"/', 'href="' . $base_path . $file_info['path'] . '/$1"', $output);
-    $output = preg_replace('/src="trans_path:([^"]+)"/', 'src="' . $base_path . $file_info['path'] . '/$1"', $output);
-    $output = str_replace('&trans_path&', $base_path . $file_info['path'] .'/', $output);
+    $output = preg_replace('/src="trans_path:([^"]+)"/',  'src="'  . $base_path . $file_info['path'] . '/$1"', $output);
+    $output = str_replace('&trans_path&',                            $base_path . $file_info['path'] . '/',    $output);
 
     // Change 'base_url:' to the URL to the site.
     $output = preg_replace('/href="base_url:([^"]+)"/', 'href="' . strtr(url('$1'), array('%24' => '$')) . '"', $output);
-    $output = preg_replace('/src="base_url:([^"]+)"/', 'src="' . strtr(url('$1'), array('%24' => '$')) . '"', $output);
+    $output = preg_replace('/src="base_url:([^"]+)"/', 'src="'   . strtr(url('$1'), array('%24' => '$')) . '"', $output);
     $output = str_replace('&base_url&', $base_path, $output);
 
     // Run the line break filter if requested
@@ -758,7 +765,7 @@ function _advanced_help_parse_ini() {
 }
 
 /**
- * Implementation of hook_search_info().
+ * Implements hook_search_info().
  *
  * @return array
  */
@@ -769,6 +776,9 @@ function advanced_help_search_info() {
   );
 }
 
+/**
+ * Implements hook_search_execute().
+ */
 function advanced_help_search_execute($keys = NULL) {
   $topics = advanced_help_get_topics();
 
@@ -813,7 +823,7 @@ function advanced_help_search_execute($keys = NULL) {
 }
 
 /**
- * Implementation of hook_search()
+ * Implements hook_search_reset().
  */
 function advanced_help_search_reset() {
   variable_del('advanced_help_last_cron');
@@ -839,7 +849,7 @@ function advanced_help_get_sids(&$topics) {
 }
 
 /**
- * Implementation of hook_update_index().
+ * Implements hook_update_index().
  */
 function advanced_help_update_index() {
   global $language;
@@ -906,7 +916,7 @@ function advanced_help_update_index() {
 function template_preprocess_advanced_help_popup(&$variables) {
   // Add favicon.
   if (theme_get_setting('toggle_favicon')) {
-    drupal_add_html_head('<link rel="shortcut icon" href="'. check_url(theme_get_setting('favicon')) .'" type="image/x-icon" />');
+    drupal_add_html_head('<link rel="shortcut icon" href="' . check_url(theme_get_setting('favicon')) . '" type="image/x-icon" />');
   }
 
   global $theme;
